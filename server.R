@@ -15,6 +15,13 @@ source("helpers.R")
 shinyServer(function(input, output) {
     
     # You can access the value of the widget with input$text, e.g.
-    output$value <- renderPrint({ strsplit(predictNext(input$text,ngrams)," ")})
+                           
+    output$value <- renderText({predictNext(input$text,ngrams)})
     
+    output$message <- renderText({
+        if (input$text < 1)
+            "Start typing few words for prediction..."
+        else
+            "Continue typing for more predictions..."
+    })
 })
