@@ -20,7 +20,7 @@ clean_input <- function(x){
     
     # trim excess whitespace
     x <- str_trim(x, side = "both")
- 
+    
     return(x)    
 }
 
@@ -44,55 +44,46 @@ getContext <- function(x)
 } 
 
 #Function to predict next word based on input with help of ngrams dataframe
-predictNext <- function(inputString, ngrams) {
+predictNext <- function(inputString, ngrams) 
+{
+    
     inputString <- clean_input(inputString)
     context <- getContext(inputString)
     
-    if (nchar(context)>0){
+    if (nchar(context)>0)
+    {
         maxgram <- wordcount(context)
-        #predictDone <- FALSE
         
         Tokens <- unlist(strsplit(context,split = " +"))
         
-        #Filter ngrams dataframe with last word (column 5 in ngrams) from the context
-        #dfPredict <- ngrams %>% filter(ngrams[,5] == Tokens[maxgram]) 
+        #Filter ngrams dataframe with last word (column 5 in ngrams) taken from the context
         dfPredict <- ngrams[ngrams$LastWord==Tokens[maxgram],]
-    #    dfPredict <- ngrams %>% filter(LastWord == Tokens[maxgram]) 
+
+            #alternate option# dfPredict <- ngrams %>% filter(ngrams[,5] == Tokens[maxgram]) 
         
-        #sort by columns NGrams(descending) and then by Probability(descending) 
+        # sort by columns NGrams(descending) and then by Probability(descending) 
         dfPredict[ order( -dfPredict[,4], -dfPredict[,3]), ]
- #       dfPredict[ order(-nGrams, -Probability), ]    
+ ##      dfPredict[ order(-nGrams, -Probability), ]    
     
         #look for exact matches in Context column of dataframe
-        # result <- dfPredict %>% filter(dfPredict[,1] == context)
         result <- dfPredict[dfPredict$Context==context,]
- #        result <- dfPredict %>% filter(Context == context)
         
         tok <- maxgram
         
-        repeat{
-            tok <- tok-1
-            if(tok==0){
-                break
-            }
-            result <- rbind(result, dfPredict[dfPredict$Context==word(context,(length(Tokens)-tok+1),-1),])
-        #    result <- rbind(result, dfPredict %>% filter(dfPredict[,1] == word(context,length(Tokens)-tok+1, -1)))
-        }
-        prediction <- unique(result$NextWord)
- 
-        if (length(prediction)<3) { 
-            prediction <- append(prediction, rep(" ",(3-length(prediction))))
-            
-        }
+        repeat
+         {
+            if(tok==0){ break }
+            result <- rbind(result, dfPredict[dfPredict$Context == word(context,(length(Tokens)-tok + 1),-1),])
+                
+        tok <- tok-1
+        
+         }
 
-#         # trim blanks
-#         prediction <- str_trim(prediction, side = "both")
+        # sort results data frame by columns NGrams(descending) and Probability(descending) 
+        result[ order( -result[,4], -result[,3]), ]
+
+        prediction <- paste("[", str_trim(paste(unique(result$NextWord), collapse = '] ['), side="both"),"]")
  
-        return(str_trim(paste(prediction, collapse=" "), side="both"))
-    }
-    else {
-        # if no prediction can be made, prompt the user to keep typing
-       return("Type few words for prediction...")
-        # return(paste(prediction<-rep("Continue typing...",each=3)),collapse=' ')
+        return(prediction)
     }
 }        
